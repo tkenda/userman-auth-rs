@@ -1,6 +1,12 @@
 [package]
 name = "userman-auth"
 version = "0.1.0"
+license = "MIT"
+description = "User Manager"
+homepage = "https://github.com/tkenda/userman-auth-rust"
+repository = "https://github.com/tkenda/userman-auth-rust"
+documentation = "README.md"
+readme = "README.md"
 edition = "2021"
 
 [dependencies]
