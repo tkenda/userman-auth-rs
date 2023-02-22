@@ -8,6 +8,10 @@ repository = "https://github.com/tkenda/userman-auth-rust"
 documentation = "README.md"
 readme = "README.md"
 edition = "2021"
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+]
 
 [dependencies]
 tokio = { version = "1.20", features = ["full"] }
