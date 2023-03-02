@@ -3,6 +3,7 @@ use std::path::Path;
 use mongodb::bson::oid::ObjectId;
 use mongodb::bson::DateTime;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 use crate::{AuthError, Result};
 
@@ -39,7 +40,7 @@ fn crud_item<T: Into<String>>(name: T) -> Item {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum DataValue {
     String(String),
@@ -48,14 +49,14 @@ pub enum DataValue {
     Boolean(bool),
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DataOptions {
     pub min_value: DataValue,
     pub max_value: DataValue,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Value {
     pub name: String,
@@ -65,7 +66,7 @@ pub struct Value {
     pub options: Option<DataOptions>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Default)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Default, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RoleValues(pub Vec<Value>);
 
@@ -91,7 +92,7 @@ impl RoleValues {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Item {
     pub name: String,
@@ -101,9 +102,9 @@ pub struct Item {
     pub items: RoleItems,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Default)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Default, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct RoleItems(Vec<Item>);
+pub struct RoleItems(pub Vec<Item>);
 
 impl RoleItems {
     pub fn local() -> Self {
@@ -274,7 +275,7 @@ impl RoleItems {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Role {
     #[serde(
@@ -282,8 +283,10 @@ pub struct Role {
         skip_serializing_if = "Option::is_none",
         serialize_with = "serialize_option_oid_as_string"
     )]
+    #[schema(value_type = String)]
     pub id: Option<ObjectId>,
     #[serde(serialize_with = "serialize_oid_as_string")]
+    #[schema(value_type = String)]
     pub app: ObjectId,
     pub name: String,
     pub items: RoleItems,
@@ -315,3 +318,6 @@ impl Role {
         serde_json::to_string_pretty(&self)
     }
 }
+
+#[derive(Serialize, ToSchema)]
+pub struct RolesVec(pub Vec<Role>);

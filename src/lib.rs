@@ -6,17 +6,17 @@ use mongodb::bson::doc;
 use mongodb::bson::oid::ObjectId;
 use mongodb::options::ClientOptions;
 use mongodb::{Client, Database};
-use role::RoleItems;
+use roles::RoleItems;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-pub mod app;
+pub mod apps;
 mod error;
-pub mod role;
+pub mod roles;
 
-use app::App;
-use role::Role;
+use apps::App;
+use roles::Role;
 
 pub use error::AuthError;
 pub type Result<T> = std::result::Result<T, AuthError>;
@@ -73,7 +73,7 @@ pub struct Auth {
 }
 
 impl Auth {
-    pub async fn add_role_items(&self, role_names: Vec<String>) -> RoleItems {
+    pub async fn permissions(&self, role_names: Vec<String>) -> RoleItems {
         let mut parent = RoleItems::default();
 
         for name in role_names {
@@ -88,16 +88,16 @@ impl Auth {
 
 #[derive(Debug)]
 pub struct MongoDB {
-    uri: String,
-    db_name: String,
-    client_name: String,
+    pub uri: String,
+    pub db_name: String,
+    pub client_name: String,
 }
 
 impl Default for MongoDB {
     fn default() -> Self {
         Self {
             uri: String::from("mongodb://localhost:27017"),
-            db_name: String::from("umt"),
+            db_name: String::from("userman"),
             client_name: Haikunator::default().haikunate(),
         }
     }
@@ -110,6 +110,11 @@ pub struct AuthBuilder {
 }
 
 impl AuthBuilder {
+    pub fn mongodb<T: Into<MongoDB>>(&mut self, src: T) -> &mut Self {
+        self.mongodb = src.into();
+        self
+    }
+
     pub fn mongodb_uri<T: Into<String>>(&mut self, src: T) -> &mut Self {
         self.mongodb.uri = src.into();
         self
@@ -125,7 +130,7 @@ impl AuthBuilder {
         self
     }
 
-    pub async fn build(self) -> Result<Auth> {
+    pub async fn build(&mut self) -> Result<Auth> {
         let mut client_options = ClientOptions::parse(&self.mongodb.uri)
             .await
             .map_err(AuthError::MongoParseUri)?;
@@ -139,7 +144,7 @@ impl AuthBuilder {
         Ok(Auth {
             roles: Roles::default(),
             database,
-            app_name: self.app_name,
+            app_name: self.app_name.to_owned(),
         })
     }
 }

@@ -1,13 +1,14 @@
 use mongodb::bson::oid::ObjectId;
 use mongodb::bson::DateTime;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 use crate::serialize_option_oid_as_string;
-use crate::role::RoleItems;
+use crate::roles::RoleItems;
 
 pub const LOCAL_APP: &str = "local";
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct App {
     #[serde(
@@ -15,6 +16,7 @@ pub struct App {
         skip_serializing_if = "Option::is_none",
         serialize_with = "serialize_option_oid_as_string"
     )]
+    #[schema(value_type = String)]
     pub id: Option<ObjectId>,
     pub name: String,
     pub version: u64,
@@ -43,3 +45,6 @@ impl App {
         self.id.unwrap_or_default()
     }
 }
+
+#[derive(Serialize, ToSchema)]
+pub struct AppsVec(pub Vec<App>);
